@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok Algospeak Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:   #fe2c55;
+      --cyan:  #25f4ee;
+      --bg:    #010101;
+      --card:  #111;
+      --border:#2a2a2a;
+      --muted: #888;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 3rem;
+      gap: 2rem;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    header { text-align: center; max-width: 640px; }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--red), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      margin-top: 0.6rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* ── Sections ────────────────────────────────────────────────────────── */
+    section {
+      width: 100%;
+      max-width: 860px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem 1.75rem;
+    }
+
+    section h2 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cyan);
+      margin-bottom: 1.1rem;
+    }
+
+    /* ── Rules ───────────────────────────────────────────────────────────── */
+    .rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .rule {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .rule-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--red), #ff6b81);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 1px;
+    }
+
+    .rule-body strong {
+      font-size: 0.92rem;
+      display: block;
+      margin-bottom: 0.2rem;
+      color: #fff;
+    }
+
+    .rule-body p {
+      font-size: 0.83rem;
+      color: #bbb;
+      line-height: 1.55;
+    }
+
+    .rule-body code {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 0 5px;
+      font-size: 0.8rem;
+      color: var(--cyan);
+      font-family: 'Cascadia Code', 'Fira Mono', monospace;
+    }
+
+    /* ── Converter ───────────────────────────────────────────────────────── */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 620px) { .panels { grid-template-columns: 1fr; } }
+
+    .panel label {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      background: #0d0d0d;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-size: 0.92rem;
+      line-height: 1.65;
+      padding: 0.8rem 1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: var(--red); }
+    textarea[readonly] { border-color: #1d4a4a; color: #ddd; }
+
+    .btn-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.58rem 1.4rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    button:hover { opacity: 0.88; }
+    button:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--red), #ff4f6d);
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-copy {
+      background: var(--cyan);
+      color: #010101;
+    }
+
+    .btn-clear {
+      background: #1c1c1c;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Reference table ─────────────────────────────────────────────────── */
+    .ref-tabs {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.1rem;
+    }
+
+    .tab {
+      padding: 0.3rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #1c1c1c;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, var(--red), #ff4f6d);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .ref-panel { display: none; }
+    .ref-panel.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.35rem 1.5rem; }
+
+    .ref-item {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .ref-orig  { color: var(--red);  font-weight: 600; min-width: 110px; flex-shrink: 0; }
+    .ref-arrow { color: #444; }
+    .ref-algo  { color: var(--cyan); }
+
+    /* ── Toast ───────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--cyan); color: #010101;
+      padding: 0.55rem 1.2rem; border-radius: 8px;
+      font-weight: 700; font-size: 0.83rem;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    footer {
+      font-size: 0.72rem;
+      color: #333;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>TikTok Algospeak Converter</h1>
+  <p>Community-agreed "algospeak" — an organic, evolving coded language used on TikTok so educators, advocates, journalists, and survivors can discuss difficult topics without triggering automated content moderation.</p>
+</header>
+
+<!-- ── RULES ── -->
+<section>
+  <h2>The 6 Rules of Algospeak</h2>
+  <div class="rules-list">
+
+    <div class="rule">
+      <div class="rule-num">1</div>
+      <div class="rule-body">
+        <strong>Acronym Reduction</strong>
+        <p>Sensitive multi-word phrases collapse into initials. These are the most widely understood and stable substitutions:
+          <code>SA</code> (sexual assault) · <code>DV</code> (domestic violence) · <code>CSA</code> (child sexual abuse) ·
+          <code>SH</code> (self-harm) · <code>ED</code> (eating disorder) · <code>TW</code> (trigger warning) · <code>MH</code> (mental health).
+        </p>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-num">2</div>
+      <div class="rule-body">
+        <strong>"Unalive" Substitution</strong>
+        <p>All language around death, killing, and suicide converges on <code>unalive</code>. Conjugates naturally:
+          <code>unalived</code>, <code>unaliving</code>, <code>unalive themselves</code>.
+          This is the single most universally adopted algospeak word.
+        </p>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-num">3</div>
+      <div class="rule-body">
+        <strong>Rhyme / Sound-Alike Substitution</strong>
+        <p>Replace flagged words with phonetically similar, innocuous words. The community chose these together:
+          <code>rape → grape</code> · <code>sex → seggs</code> · <code>sexual → seggsu4l</code> ·
+          <code>porn → corn</code> · <code>weed → le lettuce</code> · <code>cocaine → le snow</code>.
+          Conjugations follow the same swap (<code>raped → grape'd</code>).
+        </p>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-num">4</div>
+      <div class="rule-body">
+        <strong>Leet-Speak Vowel / Letter Swap</strong>
+        <p>Swap one or two letters with visually similar numbers or symbols so the word is human-readable but defeats keyword matching:
+          <code>a → 4</code> · <code>e → 3</code> · <code>i → 1</code> · <code>o → 0</code>.
+          Used when there's no good rhyme: <code>r4cism</code>, <code>4buse</code>, <code>depr3ssion</code>, <code>tr4uma</code>.
+        </p>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-num">5</div>
+      <div class="rule-body">
+        <strong>Mid-Word Break (Dash / Symbol / Space)</strong>
+        <p>Insert a dash, dot, asterisk, or space inside a word to break the string without changing pronunciation:
+          <code>gr∞ming</code>, <code>h4te-crime</code>, <code>p3d0</code>, <code>g*n</code>.
+          Works as a last resort when rules 1–4 don't apply.
+        </p>
+      </div>
+    </div>
+
+    <div class="rule">
+      <div class="rule-num">6</div>
+      <div class="rule-body">
+        <strong>"Le / Le petit" Prefix (French Camouflage)</strong>
+        <p>Prepending the French article <code>le</code> or <code>le petit</code> signals irony / coded language to in-group viewers while appearing benign to classifiers:
+          <code>le herb</code> (marijuana) · <code>le lettuce</code> (weed) · <code>le petit harm</code> (child abuse).
+          Used sparingly for nouns only.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── CONVERTER ── -->
+<section>
+  <h2>Converter — paste your script, press Convert (or Cmd+Enter)</h2>
+  <div class="panels">
+    <div class="panel">
+      <label>Original text</label>
+      <textarea id="input" placeholder="Type or paste your script here…"></textarea>
+    </div>
+    <div class="panel">
+      <label>Algospeak output</label>
+      <textarea id="output" readonly placeholder="Converted text appears here…"></textarea>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="convert()">Convert to Algospeak</button>
+    <button class="btn-copy"    onclick="copyOutput()">Copy Result</button>
+    <button class="btn-clear"   onclick="clearAll()">Clear</button>
+  </div>
+</section>
+
+<!-- ── REFERENCE ── -->
+<section>
+  <h2>Full Substitution Reference</h2>
+  <div class="ref-tabs" id="ref-tabs"></div>
+  <div id="ref-panels"></div>
+</section>
+
+<div class="toast" id="toast">Copied to clipboard!</div>
+<footer>For use by content creators, educators, journalists, advocates &amp; survivors.</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBSTITUTION DATA
+// Rule applied: most-specific (longest) phrases first to prevent partial hits.
+// Each entry: { orig, algo, cat }
+// ─────────────────────────────────────────────────────────────────────────────
+const SUBS = [
+
+  // ── Violence & Death ───────────────────────────────────────────────────────
+  // Rule 1 – Acronym
+  { orig:"sexual assault",        algo:"SA",                        cat:"Violence" },
+  { orig:"sexually assaulted",    algo:"SA'd",                      cat:"Violence" },
+  { orig:"domestic violence",     algo:"DV",                        cat:"Violence" },
+  { orig:"child sexual abuse",    algo:"CSA",                       cat:"Violence" },
+  { orig:"human trafficking",     algo:"HT",                        cat:"Violence" },
+  // Rule 3 – Rhyme
+  { orig:"rape",                  algo:"grape",                     cat:"Violence" },
+  { orig:"raped",                 algo:"grape'd",                   cat:"Violence" },
+  { orig:"rapist",                algo:"grape-ist",                 cat:"Violence" },
+  // Rule 2 – Unalive
+  { orig:"commit suicide",        algo:"unalive themselves",        cat:"Violence" },
+  { orig:"suicidal",              algo:"unalive thoughts",          cat:"Violence" },
+  { orig:"suicide",               algo:"unalive",                   cat:"Violence" },
+  { orig:"murdered",              algo:"unalived",                  cat:"Violence" },
+  { orig:"murder",                algo:"unalive",                   cat:"Violence" },
+  { orig:"killed",                algo:"unalived",                  cat:"Violence" },
+  { orig:"killing",               algo:"unaliving",                 cat:"Violence" },
+  { orig:"kill",                  algo:"unalive",                   cat:"Violence" },
+  { orig:"died",                  algo:"unalived",                  cat:"Violence" },
+  { orig:"death",                 algo:"unaliving",                 cat:"Violence" },
+  { orig:"die",                   algo:"unalive",                   cat:"Violence" },
+  // Rule 5 – Mid-word break
+  { orig:"grooming",              algo:"gr∞ming",                   cat:"Violence" },
+  { orig:"groomed",               algo:"gr∞med",                    cat:"Violence" },
+  { orig:"pedophile",             algo:"p3d0",                      cat:"Violence" },
+  { orig:"pedophilia",            algo:"p3d0philia",                cat:"Violence" },
+  { orig:"sex trafficking",       algo:"s3x trafficking",           cat:"Violence" },
+  { orig:"shooting",              algo:"sh00ting",                  cat:"Violence" },
+  { orig:"shooter",               algo:"sh00ter",                   cat:"Violence" },
+  { orig:"gun",                   algo:"g*n",                       cat:"Violence" },
+  { orig:"guns",                  algo:"g*ns",                      cat:"Violence" },
+  { orig:"bomb",                  algo:"b0mb",                      cat:"Violence" },
+  { orig:"terrorist",             algo:"t3rrorist",                 cat:"Violence" },
+  { orig:"terrorism",             algo:"t3rrorism",                 cat:"Violence" },
+  { orig:"weapon",                algo:"w34pon",                    cat:"Violence" },
+  // Rule 4 – Leet
+  { orig:"molested",              algo:"m0lested",                  cat:"Violence" },
+  { orig:"molest",                algo:"m0lest",                    cat:"Violence" },
+  { orig:"assault",               algo:"4ssault",                   cat:"Violence" },
+
+  // ── Racism & Hate ──────────────────────────────────────────────────────────
+  // Rule 1 – Acronym
+  { orig:"hate crime",            algo:"HC",                        cat:"Racism" },
+  // Rule 4 – Leet
+  { orig:"white supremacy",       algo:"wh1te supremacy",           cat:"Racism" },
+  { orig:"white supremacist",     algo:"wh1te supremacist",         cat:"Racism" },
+  { orig:"white nationalist",     algo:"wh1te nationalist",         cat:"Racism" },
+  { orig:"neo-nazi",              algo:"n30-nazi",                  cat:"Racism" },
+  { orig:"neo nazi",              algo:"n30 nazi",                  cat:"Racism" },
+  { orig:"racism",                algo:"r4cism",                    cat:"Racism" },
+  { orig:"racist",                algo:"r4cist",                    cat:"Racism" },
+  { orig:"racial",                algo:"r4cial",                    cat:"Racism" },
+  { orig:"discrimination",        algo:"discrim1nation",            cat:"Racism" },
+  { orig:"ethnic cleansing",      algo:"3thnic cleansing",          cat:"Racism" },
+  { orig:"genocide",              algo:"gen0cide",                  cat:"Racism" },
+  { orig:"antisemitism",          algo:"4ntisemitism",              cat:"Racism" },
+  { orig:"antisemitic",           algo:"4ntisemitic",               cat:"Racism" },
+  { orig:"islamophobia",          algo:"1sl4mophobia",              cat:"Racism" },
+  { orig:"transphobia",           algo:"tr4nsphobia",               cat:"Racism" },
+  { orig:"homophobia",            algo:"h0mophobia",                cat:"Racism" },
+  { orig:"lynching",              algo:"lync*ing",                  cat:"Racism" },
+  { orig:"lynched",               algo:"lync*ed",                   cat:"Racism" },
+
+  // ── Sexual Content ─────────────────────────────────────────────────────────
+  // Rule 3 – Rhyme / sound-alike (community standard)
+  { orig:"sexually",              algo:"seggsu4lly",                cat:"Sexual" },
+  { orig:"sexual",                algo:"seggsu4l",                  cat:"Sexual" },
+  { orig:"sex",                   algo:"seggs",                     cat:"Sexual" },
+  { orig:"pornography",           algo:"cornography",               cat:"Sexual" },
+  { orig:"porn",                  algo:"corn",                      cat:"Sexual" },
+  { orig:"prostitution",          algo:"pr0stitution",              cat:"Sexual" },
+  { orig:"nude",                  algo:"unclothed",                 cat:"Sexual" },
+  { orig:"nudity",                algo:"unclothed content",         cat:"Sexual" },
+  { orig:"naked",                 algo:"un-clothed",                cat:"Sexual" },
+  { orig:"masturbation",          algo:"m4sturbation",              cat:"Sexual" },
+  { orig:"masturbate",            algo:"m4sturbate",                cat:"Sexual" },
+
+  // ── Mental Health ──────────────────────────────────────────────────────────
+  // Rule 1 – Acronym
+  { orig:"self-harm",             algo:"SH",                        cat:"Mental Health" },
+  { orig:"self harm",             algo:"SH",                        cat:"Mental Health" },
+  { orig:"eating disorder",       algo:"ED",                        cat:"Mental Health" },
+  { orig:"trigger warning",       algo:"TW",                        cat:"Mental Health" },
+  { orig:"content warning",       algo:"CW",                        cat:"Mental Health" },
+  { orig:"mental health",         algo:"MH",                        cat:"Mental Health" },
+  // Rule 4 – Leet
+  { orig:"traumatic",             algo:"tr4umatic",                 cat:"Mental Health" },
+  { orig:"trauma",                algo:"tr4uma",                    cat:"Mental Health" },
+  { orig:"depression",            algo:"depr3ssion",                cat:"Mental Health" },
+  { orig:"depressed",             algo:"depr3ssed",                 cat:"Mental Health" },
+  { orig:"anxiety",               algo:"anxi3ty",                   cat:"Mental Health" },
+  { orig:"anorexia",              algo:"an0rexia",                  cat:"Mental Health" },
+  { orig:"bulimia",               algo:"bul1mia",                   cat:"Mental Health" },
+  { orig:"overdose",              algo:"0verdose",                  cat:"Mental Health" },
+  { orig:"abuser",                algo:"4buser",                    cat:"Mental Health" },
+  { orig:"abused",                algo:"4bused",                    cat:"Mental Health" },
+  { orig:"abuse",                 algo:"4buse",                     cat:"Mental Health" },
+
+  // ── Drugs ──────────────────────────────────────────────────────────────────
+  // Rule 6 – "Le" prefix
+  { orig:"marijuana",             algo:"le herb",                   cat:"Drugs" },
+  { orig:"weed",                  algo:"le lettuce",                cat:"Drugs" },
+  { orig:"cannabis",              algo:"le plant",                  cat:"Drugs" },
+  // Rule 3 / 4
+  { orig:"cocaine",               algo:"le snow",                   cat:"Drugs" },
+  { orig:"heroin",                algo:"h3roin",                    cat:"Drugs" },
+  { orig:"fentanyl",              algo:"f3ntanyl",                  cat:"Drugs" },
+  { orig:"methamphetamine",       algo:"m3th",                      cat:"Drugs" },
+  { orig:"meth",                  algo:"m3th",                      cat:"Drugs" },
+  { orig:"drugs",                 algo:"fr00tz",                    cat:"Drugs" },
+  { orig:"drug",                  algo:"fr00t",                     cat:"Drugs" },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUILD REFERENCE PANELS
+// ─────────────────────────────────────────────────────────────────────────────
+const categories = [...new Set(SUBS.map(s => s.cat))];
+const tabsEl   = document.getElementById('ref-tabs');
+const panelsEl = document.getElementById('ref-panels');
+
+categories.forEach((cat, i) => {
+  // Tab
+  const tab = document.createElement('button');
+  tab.className = 'tab' + (i === 0 ? ' active' : '');
+  tab.textContent = cat;
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ref-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + cat).classList.add('active');
+  };
+  tabsEl.appendChild(tab);
+
+  // Panel
+  const panel = document.createElement('div');
+  panel.className = 'ref-panel' + (i === 0 ? ' active' : '');
+  panel.id = 'panel-' + cat;
+
+  SUBS.filter(s => s.cat === cat).forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'ref-item';
+    item.innerHTML = `<span class="ref-orig">${esc(s.orig)}</span>
+                      <span class="ref-arrow">→</span>
+                      <span class="ref-algo">${esc(s.algo)}</span>`;
+    panel.appendChild(item);
+  });
+
+  panelsEl.appendChild(panel);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONVERTER
+// ─────────────────────────────────────────────────────────────────────────────
+function convert() {
+  let text = document.getElementById('input').value;
+  if (!text.trim()) return;
+
+  // Apply rules longest-first (already ordered in SUBS array)
+  SUBS.forEach(({ orig, algo }) => {
+    const escaped = orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Word-boundary aware: also allow hyphen as boundary
+    const re = new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`, 'gi');
+    text = text.replace(re, match => {
+      // Preserve leading capitalisation
+      const firstLetter = match[0];
+      if (firstLetter === firstLetter.toUpperCase() && firstLetter !== firstLetter.toLowerCase()) {
+        return algo.charAt(0).toUpperCase() + algo.slice(1);
+      }
+      return algo;
+    });
+  });
+
+  document.getElementById('output').value = text;
+}
+
+function copyOutput() {
+  const val = document.getElementById('output').value;
+  if (!val) return;
+  navigator.clipboard.writeText(val).then(showToast);
+}
+
+function clearAll() {
+  document.getElementById('input').value  = '';
+  document.getElementById('output').value = '';
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Cmd/Ctrl + Enter shortcut
+document.getElementById('input').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') convert();
+});
+</script>
+</body>
+</html>
