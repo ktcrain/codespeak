@@ -1,0 +1,770 @@
+[
+  {
+    "id": "001",
+    "input": "you're such a faggot",
+    "expect": [
+      "block"
+    ],
+    "note": "baseline anti-LGBTQ+ slur"
+  },
+  {
+    "id": "002",
+    "input": "you're such a f4gg0t",
+    "expect": [
+      "block"
+    ],
+    "note": "leet obfuscation"
+  },
+  {
+    "id": "003",
+    "input": "you're such a f.a.g.g.o.t",
+    "expect": [
+      "block"
+    ],
+    "note": "dot separator obfuscation"
+  },
+  {
+    "id": "004",
+    "input": "you're such a f***ot",
+    "expect": [
+      "block"
+    ],
+    "note": "asterisk obfuscation"
+  },
+  {
+    "id": "005",
+    "input": "you're such a faaaggot",
+    "expect": [
+      "block"
+    ],
+    "note": "repeated char obfuscation"
+  },
+  {
+    "id": "006",
+    "input": "stop being such a fag",
+    "expect": [
+      "block"
+    ],
+    "note": "short form slur"
+  },
+  {
+    "id": "007",
+    "input": "that gay ass nigger faggot cripple",
+    "expect": [
+      "block",
+      "block",
+      "block",
+      "block"
+    ],
+    "note": "compound slur sentence"
+  },
+  {
+    "id": "008",
+    "input": "you're such a god damn little bitch gay ass nigger faggot cripple who is too emotional",
+    "expect": [
+      "review",
+      "review",
+      "review",
+      "block",
+      "block",
+      "block",
+      "block",
+      "suggest"
+    ],
+    "note": "original failing sentence"
+  },
+  {
+    "id": "009",
+    "input": "she's a tranny",
+    "expect": [
+      "block"
+    ],
+    "note": "anti-trans slur"
+  },
+  {
+    "id": "010",
+    "input": "he called her a shemale",
+    "expect": [
+      "block"
+    ],
+    "note": "dehumanizing trans term"
+  },
+  {
+    "id": "011",
+    "input": "what a he-she",
+    "expect": [
+      "block"
+    ],
+    "note": "anti-trans slur hyphenated"
+  },
+  {
+    "id": "012",
+    "input": "look at that dyke over there",
+    "expect": [
+      "block"
+    ],
+    "note": "anti-LGBTQ+ slur in context"
+  },
+  {
+    "id": "013",
+    "input": "the n*gger in that story",
+    "expect": [
+      "block"
+    ],
+    "note": "asterisk-obfuscated racial slur"
+  },
+  {
+    "id": "014",
+    "input": "n1gger please",
+    "expect": [
+      "block"
+    ],
+    "note": "leet racial slur"
+  },
+  {
+    "id": "015",
+    "input": "he's such a coon",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur Black"
+  },
+  {
+    "id": "016",
+    "input": "those spics took our jobs",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur Latino"
+  },
+  {
+    "id": "017",
+    "input": "the chinks are buying up real estate",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur East Asian"
+  },
+  {
+    "id": "018",
+    "input": "get out of here you gook",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur Southeast Asian"
+  },
+  {
+    "id": "019",
+    "input": "these wetbacks are crossing the border",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur immigration"
+  },
+  {
+    "id": "020",
+    "input": "the kikes control the media",
+    "expect": [
+      "block"
+    ],
+    "note": "antisemitic slur + conspiracy"
+  },
+  {
+    "id": "021",
+    "input": "those hajis are terrorists",
+    "expect": [
+      "block",
+      "review"
+    ],
+    "note": "anti-Muslim slur + loaded term"
+  },
+  {
+    "id": "022",
+    "input": "the redskins lost again",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur Indigenous \u2014 could be sports reference"
+  },
+  {
+    "id": "023",
+    "input": "i got gypped by that mechanic",
+    "expect": [
+      "block"
+    ],
+    "note": "racial slur used as verb (common, often unaware)"
+  },
+  {
+    "id": "024",
+    "input": "he jewed me down on the price",
+    "expect": [
+      "block"
+    ],
+    "note": "antisemitic slur as verb"
+  },
+  {
+    "id": "025",
+    "input": "what a cunt",
+    "expect": [
+      "block"
+    ],
+    "note": "misogynistic slur"
+  },
+  {
+    "id": "026",
+    "input": "she's such a slut",
+    "expect": [
+      "block"
+    ],
+    "note": "misogynistic slur"
+  },
+  {
+    "id": "027",
+    "input": "you're a whore for doing that",
+    "expect": [
+      "block"
+    ],
+    "note": "misogynistic slur in sentence"
+  },
+  {
+    "id": "028",
+    "input": "you're so retarded",
+    "expect": [
+      "block"
+    ],
+    "note": "ableist slur"
+  },
+  {
+    "id": "029",
+    "input": "r3tarded logic",
+    "expect": [
+      "block"
+    ],
+    "note": "leet ableist slur"
+  },
+  {
+    "id": "030",
+    "input": "what a spastic",
+    "expect": [
+      "block"
+    ],
+    "note": "ableist slur"
+  },
+  {
+    "id": "031",
+    "input": "she's just a cripple",
+    "expect": [
+      "block"
+    ],
+    "note": "ableist slur physical disability"
+  },
+  {
+    "id": "032",
+    "input": "that gimp can't keep up",
+    "expect": [
+      "block"
+    ],
+    "note": "ableist slur"
+  },
+  {
+    "id": "033",
+    "input": "that's crazy",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor casual"
+  },
+  {
+    "id": "034",
+    "input": "the idea was insane",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor"
+  },
+  {
+    "id": "035",
+    "input": "my ex is a total psycho",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor stigmatizing"
+  },
+  {
+    "id": "036",
+    "input": "he went absolutely lunatic on me",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist stigmatizing"
+  },
+  {
+    "id": "037",
+    "input": "that's so lame",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor casual"
+  },
+  {
+    "id": "038",
+    "input": "don't be dumb about this",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor"
+  },
+  {
+    "id": "039",
+    "input": "that was a stupid decision",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist casual"
+  },
+  {
+    "id": "040",
+    "input": "what an idiot",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist medical origin"
+  },
+  {
+    "id": "041",
+    "input": "you moron",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist medical origin"
+  },
+  {
+    "id": "042",
+    "input": "you imbecile",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist medical origin"
+  },
+  {
+    "id": "043",
+    "input": "she committed suicide last year",
+    "expect": [
+      "suggest"
+    ],
+    "note": "stigmatizing suicide phrasing"
+  },
+  {
+    "id": "044",
+    "input": "my brother is an addict",
+    "expect": [
+      "suggest"
+    ],
+    "note": "stigmatizing addiction noun"
+  },
+  {
+    "id": "045",
+    "input": "he's a schizo for sure",
+    "expect": [
+      "suggest"
+    ],
+    "note": "stigmatizing mental health casual"
+  },
+  {
+    "id": "046",
+    "input": "I'm so OCD about my desk",
+    "expect": [
+      "review"
+    ],
+    "note": "casual misuse of clinical term"
+  },
+  {
+    "id": "047",
+    "input": "I'm totally triggered right now",
+    "expect": [
+      "review"
+    ],
+    "note": "casual misuse of trauma term"
+  },
+  {
+    "id": "048",
+    "input": "that's so gay",
+    "expect": [
+      "suggest"
+    ],
+    "note": "homophobic expression"
+  },
+  {
+    "id": "049",
+    "input": "no homo but I love you man",
+    "expect": [
+      "suggest"
+    ],
+    "note": "homophobic disclaimer"
+  },
+  {
+    "id": "050",
+    "input": "she's a gay ass loser",
+    "expect": [
+      "block"
+    ],
+    "note": "gay-ass compound as insult"
+  },
+  {
+    "id": "051",
+    "input": "illegal immigrants are ruining the country",
+    "expect": [
+      "suggest"
+    ],
+    "note": "dehumanizing immigration phrasing"
+  },
+  {
+    "id": "052",
+    "input": "we need to stop the illegals",
+    "expect": [
+      "suggest"
+    ],
+    "note": "dehumanizing noun"
+  },
+  {
+    "id": "053",
+    "input": "that neighborhood is so ghetto",
+    "expect": [
+      "suggest"
+    ],
+    "note": "racially coded adjective"
+  },
+  {
+    "id": "054",
+    "input": "find your tribe online",
+    "expect": [
+      "review"
+    ],
+    "note": "casual appropriation \u2014 borderline"
+  },
+  {
+    "id": "055",
+    "input": "god damn that was loud",
+    "expect": [
+      "review"
+    ],
+    "note": "religious profanity casual"
+  },
+  {
+    "id": "056",
+    "input": "she's just too emotional to lead",
+    "expect": [
+      "suggest"
+    ],
+    "note": "gendered dismissal"
+  },
+  {
+    "id": "057",
+    "input": "women are too emotional for politics",
+    "expect": [
+      "suggest"
+    ],
+    "note": "gendered dismissal in argument"
+  },
+  {
+    "id": "058",
+    "input": "he was being hysterical",
+    "expect": [
+      "suggest"
+    ],
+    "note": "gendered/ableist history"
+  },
+  {
+    "id": "059",
+    "input": "I'm queer and proud",
+    "expect": [
+      "review"
+    ],
+    "note": "reclaimed \u2014 self-identified, should flag for awareness not block"
+  },
+  {
+    "id": "060",
+    "input": "she's a bitch for doing that",
+    "expect": [
+      "review"
+    ],
+    "note": "misogynistic in context"
+  },
+  {
+    "id": "061",
+    "input": "my female dog is a bitch",
+    "expect": [
+      "review"
+    ],
+    "note": "false positive \u2014 technical term"
+  },
+  {
+    "id": "062",
+    "input": "the word faggot is a slur",
+    "expect": [
+      "block"
+    ],
+    "note": "educational context \u2014 tool should still flag, user decides"
+  },
+  {
+    "id": "063",
+    "input": "researchers study the n-word in hate speech",
+    "expect": [
+      "block"
+    ],
+    "note": "academic context \u2014 should flag"
+  },
+  {
+    "id": "064",
+    "input": "scunthorpe is a city in England",
+    "expect": [],
+    "note": "false positive \u2014 'cunt' embedded in proper noun"
+  },
+  {
+    "id": "065",
+    "input": "she assassinated his character",
+    "expect": [],
+    "note": "false positive \u2014 'ass' in 'assassinated'"
+  },
+  {
+    "id": "066",
+    "input": "the therapist helped them",
+    "expect": [],
+    "note": "false positive \u2014 'rapist' in 'therapist'"
+  },
+  {
+    "id": "067",
+    "input": "i need to analyze this data",
+    "expect": [],
+    "note": "false positive \u2014 'anal' in 'analyze'"
+  },
+  {
+    "id": "068",
+    "input": "classic architecture",
+    "expect": [],
+    "note": "false positive \u2014 no flags expected"
+  },
+  {
+    "id": "069",
+    "input": "the cocktail menu was excellent",
+    "expect": [],
+    "note": "false positive \u2014 'cock' in 'cocktail'"
+  },
+  {
+    "id": "070",
+    "input": "he spiked the ball into the endzone",
+    "expect": [],
+    "note": "false positive \u2014 'spic' in 'spiked'"
+  },
+  {
+    "id": "071",
+    "input": "f4g got caught shoplifting",
+    "expect": [
+      "block"
+    ],
+    "note": "slur + space to evade \u2014 should detect 'f4g'"
+  },
+  {
+    "id": "072",
+    "input": "n.i.g.g.e.r",
+    "expect": [
+      "block"
+    ],
+    "note": "dot-separated racial slur"
+  },
+  {
+    "id": "073",
+    "input": "what a c u n t",
+    "expect": [
+      "block"
+    ],
+    "note": "space-separated slur"
+  },
+  {
+    "id": "074",
+    "input": "r-e-t-a-r-d",
+    "expect": [
+      "block"
+    ],
+    "note": "hyphen-separated slur"
+  },
+  {
+    "id": "075",
+    "input": "she was gr\u221emed as a child",
+    "expect": [],
+    "note": "algospeak in \u2014 tool shouldn't double-flag algospeak output"
+  },
+  {
+    "id": "076",
+    "input": "my friend died by suicide",
+    "expect": [],
+    "note": "correct phrasing \u2014 no flag expected"
+  },
+  {
+    "id": "077",
+    "input": "person with addiction seeking help",
+    "expect": [],
+    "note": "person-first language \u2014 no flag"
+  },
+  {
+    "id": "078",
+    "input": "the LGBTQ+ community celebrated",
+    "expect": [],
+    "note": "no flag \u2014 respectful term"
+  },
+  {
+    "id": "079",
+    "input": "she's a transgender woman",
+    "expect": [],
+    "note": "no flag \u2014 respectful term"
+  },
+  {
+    "id": "080",
+    "input": "Indigenous peoples of North America",
+    "expect": [],
+    "note": "no flag \u2014 respectful term"
+  },
+  {
+    "id": "081",
+    "input": "he's so overly emotional about everything",
+    "expect": [
+      "suggest"
+    ],
+    "note": "gendered dismissal variant"
+  },
+  {
+    "id": "082",
+    "input": "don't be such a girl about it",
+    "expect": [
+      "suggest"
+    ],
+    "note": "gendered diminishment"
+  },
+  {
+    "id": "083",
+    "input": "man up and stop crying",
+    "expect": [
+      "suggest"
+    ],
+    "note": "toxic masculinity / gender policing"
+  },
+  {
+    "id": "084",
+    "input": "that's a very bold and ambitious idea",
+    "expect": [],
+    "note": "no flag \u2014 good replacement for 'insane idea'"
+  },
+  {
+    "id": "085",
+    "input": "the situation was chaotic and intense",
+    "expect": [],
+    "note": "no flag \u2014 good replacement for 'crazy'"
+  },
+  {
+    "id": "086",
+    "input": "she's passionate about the cause",
+    "expect": [],
+    "note": "no flag \u2014 good replacement for 'emotional'"
+  },
+  {
+    "id": "087",
+    "input": "white supremacists marched downtown",
+    "expect": [],
+    "note": "educational reporting \u2014 no flag (describing group, not slur)"
+  },
+  {
+    "id": "088",
+    "input": "the hate crime was committed in broad daylight",
+    "expect": [],
+    "note": "no flag \u2014 factual reporting"
+  },
+  {
+    "id": "089",
+    "input": "conversion therapy is harmful and banned in many states",
+    "expect": [],
+    "note": "no flag \u2014 advocacy/reporting"
+  },
+  {
+    "id": "090",
+    "input": "deadnaming trans people causes real harm",
+    "expect": [],
+    "note": "no flag \u2014 advocacy language"
+  },
+  {
+    "id": "091",
+    "input": "you gay piece of shit",
+    "expect": [
+      "review"
+    ],
+    "note": "gay as review; \"piece of shit\" is profanity not a protected-group slur"
+  },
+  {
+    "id": "092",
+    "input": "what are you, some kind of f****t?",
+    "expect": [
+      "block"
+    ],
+    "note": "asterisk slur in question form"
+  },
+  {
+    "id": "093",
+    "input": "the crazy cat lady next door",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor casual \u2014 'crazy' modifying person"
+  },
+  {
+    "id": "094",
+    "input": "that idea is absolutely insane and I love it",
+    "expect": [
+      "suggest"
+    ],
+    "note": "ableist metaphor positive context \u2014 still suggest"
+  },
+  {
+    "id": "095",
+    "input": "she went crazy on the dance floor",
+    "expect": [
+      "suggest"
+    ],
+    "note": "casual positive use \u2014 still ableist metaphor"
+  },
+  {
+    "id": "096",
+    "input": "BPD is not the same as being mean",
+    "expect": [],
+    "note": "educational clinical reference \u2014 no flag needed"
+  },
+  {
+    "id": "097",
+    "input": "people with BPD deserve compassion",
+    "expect": [],
+    "note": "advocacy \u2014 no flag"
+  },
+  {
+    "id": "098",
+    "input": "the savage attack left three injured",
+    "expect": [],
+    "note": "savage as adjective \u2014 plural-only rule means this should now pass clean"
+  },
+  {
+    "id": "099",
+    "input": "those savages are uncivilized",
+    "expect": [
+      "block"
+    ],
+    "note": "dehumanizing \u2014 'savages' targeting people"
+  },
+  {
+    "id": "100",
+    "input": "you're dumb, crazy, hysterical, and stupid",
+    "expect": [
+      "suggest",
+      "suggest",
+      "suggest",
+      "suggest"
+    ],
+    "note": "multiple ableist metaphors in one sentence"
+  }
+]

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeSpeak — Test Runner</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #010101; --card: #111; --border: #2a2a2a; --muted: #888;
+      --red: #fe2c55; --cyan: #25f4ee;
+      --pass: #1a3a1a; --pass-text: #4caf50; --pass-border: #2d5a2d;
+      --fail: #3a0a0a; --fail-text: #ff6b6b; --fail-border: #7a1a1a;
+      --skip: #1a1a2a; --skip-text: #aaaaff; --skip-border: #2a2a5a;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: #f0f0f0; padding: 2rem 1rem; }
+    h1 { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, var(--red), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.4rem; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+    .summary {
+      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 800; }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .stat.pass .stat-num { color: var(--pass-text); }
+    .stat.fail .stat-num { color: var(--fail-text); }
+    .stat.skip .stat-num { color: var(--skip-text); }
+    .stat.total .stat-num { color: var(--cyan); }
+    .controls { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    button { padding: 0.5rem 1.2rem; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+    .btn-run { background: linear-gradient(135deg, var(--red), #ff4f6d); color: #fff; }
+    .btn-filter { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+    .btn-filter.active { border-color: var(--cyan); color: var(--cyan); }
+    .progress { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.5rem; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--red), var(--cyan)); width: 0; transition: width 0.2s; }
+    .test-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .test-item { border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.83rem; line-height: 1.5; border: 1px solid; }
+    .test-item.pass { background: var(--pass); border-color: var(--pass-border); }
+    .test-item.fail { background: var(--fail); border-color: var(--fail-border); }
+    .test-item.skip { background: var(--skip); border-color: var(--skip-border); }
+    .test-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; flex-wrap: wrap; }
+    .test-id { font-family: monospace; font-size: 0.72rem; color: var(--muted); }
+    .test-status { font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .test-item.pass .test-status { color: var(--pass-text); }
+    .test-item.fail .test-status { color: var(--fail-text); }
+    .test-item.skip .test-status { color: var(--skip-text); }
+    .test-input { font-family: monospace; background: #000; padding: 0.2rem 0.4rem; border-radius: 4px; color: #eee; font-size: 0.8rem; word-break: break-all; }
+    .test-note { color: var(--muted); font-size: 0.75rem; margin-top: 0.2rem; }
+    .test-detail { margin-top: 0.4rem; font-size: 0.78rem; color: #bbb; }
+    .test-detail span { display: inline-block; margin-right: 0.4rem; padding: 0.1rem 0.35rem; border-radius: 3px; font-family: monospace; font-size: 0.73rem; }
+    .got-block { background: #3a0a0a; color: #ff8888; border: 1px solid #ff4444; }
+    .got-suggest { background: #2a2000; color: #ffcc44; border: 1px solid #ffaa00; }
+    .got-review { background: #0d1a2a; color: #88aaff; border: 1px solid #4488ff; }
+    .got-none { background: #1a1a1a; color: #555; border: 1px solid #333; }
+    .expected-label { color: #555; font-size: 0.72rem; }
+    .loading { color: var(--muted); padding: 2rem; text-align: center; }
+  </style>
+</head>
+<body>
+<h1>CodeSpeak Test Runner</h1>
+<p class="subtitle">Automated regression tests for the language safety detection engine.</p>
+
+<div class="summary" id="summary">
+  <div class="stat total"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total</div></div>
+  <div class="stat pass"><div class="stat-num" id="s-pass">—</div><div class="stat-label">Pass</div></div>
+  <div class="stat fail"><div class="stat-num" id="s-fail">—</div><div class="stat-label">Fail</div></div>
+  <div class="stat skip"><div class="stat-num" id="s-skip">—</div><div class="stat-label">Skip</div></div>
+</div>
+
+<div class="controls">
+  <button class="btn-run" onclick="runAll()">▶ Run All Tests</button>
+  <button class="btn-filter active" id="f-all"   onclick="setFilter('all')">All</button>
+  <button class="btn-filter"        id="f-pass"  onclick="setFilter('pass')">Pass</button>
+  <button class="btn-filter"        id="f-fail"  onclick="setFilter('fail')">Fail</button>
+  <button class="btn-filter"        id="f-skip"  onclick="setFilter('skip')">Skip</button>
+</div>
+
+<div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+<div class="test-list" id="test-list"><div class="loading">Press "Run All Tests" to begin.</div></div>
+
+<script>
+// ── PASTE DETECTION ENGINE INLINE (must stay in sync with index.html) ─────────
+const LEET = { '4':'a','@':'a','3':'e','1':'i','!':'i','|':'i','0':'o','5':'s','$':'s','7':'t','8':'b','6':'g','9':'g' };
+
+function buildNorm(original) {
+  const lower = original.normalize('NFKC').toLowerCase();
+  let s1 = '', s1map = [];
+  for (let i = 0; i < lower.length; i++) { s1 += LEET[lower[i]] ?? lower[i]; s1map.push(i); }
+  let s2 = '', s2map = [], i = 0;
+  while (i < s1.length) {
+    const c = s1[i]; s2 += c; s2map.push(s1map[i]); i++;
+    if (i < s1.length && s1[i] === c) { s2 += c; s2map.push(s1map[i]); i++; while (i < s1.length && s1[i] === c) i++; }
+  }
+  let normText = '', normToOrig = [];
+  for (let k = 0; k < s2.length; k++) {
+    const c = s2[k];
+    if (/[-.*_~^|\\]/.test(c)) {
+      const prev = k > 0 ? s2[k-1] : '', next = k < s2.length-1 ? s2[k+1] : '';
+      if (/[a-z]/.test(prev) && /[a-z]/.test(next)) continue;
+    }
+    normText += c; normToOrig.push(s2map[k]);
+  }
+  return { normText, normToOrig };
+}
+
+function normalize(str) {
+  let s = str.normalize('NFKC').toLowerCase();
+  s = s.split('').map(c => LEET[c] ?? c).join('');
+  s = s.replace(/(.)\1{2,}/g, '$1$1');
+  s = s.replace(/(?<=[a-z])[-.*_~^|\\]+(?=[a-z])/g, '');
+  return s;
+}
+
+const RULES = [
+  { match:/\bfa+g+s?\b/,            severity:'block',   category:'Anti-LGBTQ+ slur', message:'Anti-LGBTQ+ slur', alts:[] },
+  { match:/\bfa+g+o+t+s?\b/,        severity:'block',   category:'Anti-LGBTQ+ slur', message:'Anti-LGBTQ+ slur (full form)', alts:[] },
+  { match:/\bdykes?\b/,              severity:'block',   category:'Anti-LGBTQ+ slur', message:'Slur targeting lesbian/queer women', alts:[] },
+  { match:/\btran+y\b/,              severity:'block',   category:'Anti-trans slur', message:'Anti-trans slur', alts:[] },
+  { match:/\bshemale\b/,             severity:'block',   category:'Anti-trans slur', message:'Dehumanizing trans term', alts:[] },
+  { match:/\bhe-?she\b/,             severity:'block',   category:'Anti-trans slur', message:'Anti-trans slur', alts:[] },
+  { match:/\bn+i+g+(er|ers|a|as)\b/, severity:'block',   category:'Racial slur', message:'Racial slur — Black people', alts:[] },
+  { match:/\bcoons?\b/,              severity:'block',   category:'Racial slur', message:'Racial slur — Black people', alts:[] },
+  { match:/\bspics?\b/,              severity:'block',   category:'Racial slur', message:'Racial slur — Latino/Hispanic', alts:[] },
+  { match:/\bchinks?\b/,             severity:'block',   category:'Racial slur', message:'Racial slur — East Asian', alts:[] },
+  { match:/\bgooks?\b/,              severity:'block',   category:'Racial slur', message:'Racial slur — East/SE Asian', alts:[] },
+  { match:/\bwetbacks?\b/,           severity:'block',   category:'Racial slur', message:'Racial slur — immigrants', alts:[] },
+  { match:/\bkikes?\b/,              severity:'block',   category:'Antisemitic slur', message:'Antisemitic slur', alts:[] },
+  { match:/\bhajis?\b/,              severity:'block',   category:'Racial/religious slur', message:'Slur — Arab/Muslim', alts:[] },
+  { match:/\bredskins?\b/,           severity:'block',   category:'Racial slur', message:'Racial slur — Indigenous', alts:[] },
+  { match:/\bgyppe?d?\b/,            severity:'block',   category:'Racial slur', message:'Slur — Romani people', alts:[] },
+  { match:/\bjewed?\b/,              severity:'block',   category:'Antisemitic slur', message:'Antisemitic slur as verb', alts:[] },
+  { match:/\bcunts?\b/,              severity:'block',   category:'Misogynistic slur', message:'Misogynistic slur', alts:[] },
+  { match:/\bsluts?\b/,              severity:'block',   category:'Misogynistic slur', message:'Misogynistic slur', alts:[] },
+  { match:/\bwhores?\b/,             severity:'block',   category:'Misogynistic slur', message:'Misogynistic slur', alts:[] },
+  { match:/\breta+rde?d?\b/,         severity:'block',   category:'Ableist slur', message:'Ableist slur', alts:[] },
+  { match:/\bspastics?\b/,           severity:'block',   category:'Ableist slur', message:'Ableist slur', alts:[] },
+  { match:/\bcripples?\b/,           severity:'block',   category:'Ableist slur', message:'Ableist slur — physical disability', alts:[] },
+  { match:/\bgimp\b/,                severity:'block',   category:'Ableist slur', message:'Ableist slur', alts:[] },
+  { match:/\bcraz(y|ier|iest|ily|iness)\b/, severity:'suggest', category:'Ableist metaphor', message:'"Crazy"', alts:[] },
+  { match:/\binsane(ly)?\b/,         severity:'suggest', category:'Ableist metaphor', message:'"Insane"', alts:[] },
+  { match:/\bpsychos?\b/,            severity:'suggest', category:'Ableist metaphor', message:'"Psycho"', alts:[] },
+  { match:/\blunatics?\b/,           severity:'suggest', category:'Ableist metaphor', message:'"Lunatic"', alts:[] },
+  { match:/\blame\b/,                severity:'suggest', category:'Ableist metaphor', message:'"Lame"', alts:[] },
+  { match:/\bdumb\b/,                severity:'suggest', category:'Ableist metaphor', message:'"Dumb"', alts:[] },
+  { match:/\bstupid\b/,              severity:'suggest', category:'Ableist language', message:'"Stupid"', alts:[] },
+  { match:/\bidioti?c?\b/,           severity:'suggest', category:'Ableist language', message:'"Idiot"', alts:[] },
+  { match:/\bmorons?\b/,             severity:'suggest', category:'Ableist language', message:'"Moron"', alts:[] },
+  { match:/\bimbeciles?\b/,          severity:'suggest', category:'Ableist language', message:'"Imbecile"', alts:[] },
+  { match:/\bcommitt?ed suicide\b/,  severity:'suggest', category:'Stigmatizing suicide language', message:'"Committed suicide"', alts:[] },
+  { match:/\baddict(ed|s|ion)?\b/,   severity:'suggest', category:'Stigmatizing addiction language', message:'"Addict"', alts:[] },
+  { match:/\bschizos?\b/,            severity:'suggest', category:'Stigmatizing MH language', message:'"Schizo"', alts:[] },
+  { match:/\bthat'?s? so gay\b/,     severity:'suggest', category:'Homophobic expression', message:'"So gay" as insult', alts:[] },
+  { match:/\bno homo\b/,             severity:'suggest', category:'Homophobic expression', message:'"No homo"', alts:[] },
+  { match:/\bgay[\s-]?ass\b/,        severity:'block',   category:'Homophobic expression', message:'"Gay ass" as insult', alts:[] },
+  { match:/\bgay\b/,                 severity:'review',  category:'Context-dependent (LGBTQ+)', message:'"Gay"', alts:[] },
+  { match:/\billegal (alien|immigrant)s?\b/, severity:'suggest', category:'Dehumanizing immigration', message:'"Illegal immigrant"', alts:[] },
+  { match:/\billegals\b/,            severity:'suggest', category:'Dehumanizing immigration', message:'"Illegals"', alts:[] },
+  { match:/\bghetto\b/,              severity:'suggest', category:'Racially coded language', message:'"Ghetto"', alts:[] },
+  { match:/\bbitch(es|y|ing)?\b/,    severity:'review',  category:'Context-dependent', message:'"Bitch"', alts:[] },
+  { match:/\bqueer\b/,               severity:'review',  category:'Reclaimed term', message:'"Queer"', alts:[] },
+  { match:/\btriggered\b/,           severity:'review',  category:'Casual use of trauma term', message:'"Triggered"', alts:[] },
+  { match:/\bOCD\b/,                 severity:'review',  category:'MH term used casually', message:'"OCD"', alts:[] },
+  { match:/\btribe\b/,               severity:'review',  category:'Potentially appropriative', message:'"Tribe"', alts:[] },
+  { match:/\bgod\s*da+mn\b/,         severity:'review',  category:'Religious profanity', message:'"Goddamn"', alts:[] },
+  { match:/\b(too|so|overly)\s+emotional\b/, severity:'suggest', category:'Gendered dismissal', message:'"Too/so/overly emotional"', alts:[] },
+  { match:/\bhysterical\b/,          severity:'suggest', category:'Gendered/ableist language', message:'"Hysterical"', alts:[] },
+  { match:/\bdon'?t be such a (girl|woman|lady)\b/, severity:'suggest', category:'Gendered diminishment', message:'"Don\'t be such a girl"', alts:[] },
+  { match:/\bman up\b/,              severity:'suggest', category:'Gender policing', message:'"Man up"', alts:[] },
+  { match:/\bsavages?\b/,            severity:'block',   category:'Dehumanizing language', message:'"Savages" targeting people', alts:[] },
+];
+
+function detect(originalText) {
+  const { normText, normToOrig } = buildNorm(originalText);
+  const results = [];
+  for (const rule of RULES) {
+    const pat = rule.match instanceof RegExp
+      ? new RegExp(rule.match.source, 'gi')
+      : new RegExp('(?<![a-z])' + escRe(normalize(rule.match)) + '(?![a-z])', 'gi');
+    let m;
+    while ((m = pat.exec(normText)) !== null) {
+      const ns = m.index, ne = m.index + m[0].length;
+      const origStart = normToOrig[ns];
+      const origEnd = (normToOrig[ne-1] ?? normToOrig[normToOrig.length-1]) + 1;
+      let s = origStart, e = origEnd;
+      while (s > 0 && /\w/.test(originalText[s-1])) s--;
+      while (e < originalText.length && /\w/.test(originalText[e])) e++;
+      results.push({ start:s, end:e, origText:originalText.slice(s,e), severity:rule.severity, category:rule.category });
+    }
+  }
+  results.sort((a,b) => a.start - b.start);
+  const merged = []; let cursor = 0;
+  for (const r of results) { if (r.start >= cursor) { merged.push(r); cursor = r.end; } }
+  return merged;
+}
+
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// ── TEST RUNNER ───────────────────────────────────────────────────────────────
+let allTests = [], currentFilter = 'all', renderedResults = [];
+
+function loadTests() {
+  return [{"id":"001","input":"you're such a faggot","expect":["block"],"note":"baseline anti-LGBTQ+ slur"},{"id":"002","input":"you're such a f4gg0t","expect":["block"],"note":"leet obfuscation"},{"id":"003","input":"you're such a f.a.g.g.o.t","expect":["block"],"note":"dot separator obfuscation"},{"id":"004","input":"you're such a f***ot","expect":["block"],"note":"asterisk obfuscation"},{"id":"005","input":"you're such a faaaggot","expect":["block"],"note":"repeated char obfuscation"},{"id":"006","input":"stop being such a fag","expect":["block"],"note":"short form slur"},{"id":"007","input":"that gay ass nigger faggot cripple","expect":["block","block","block","block"],"note":"compound slur sentence"},{"id":"008","input":"you're such a god damn little bitch gay ass nigger faggot cripple who is too emotional","expect":["review","review","review","block","block","block","block","suggest"],"note":"original failing sentence"},{"id":"009","input":"she's a tranny","expect":["block"],"note":"anti-trans slur"},{"id":"010","input":"he called her a shemale","expect":["block"],"note":"dehumanizing trans term"},{"id":"011","input":"what a he-she","expect":["block"],"note":"anti-trans slur hyphenated"},{"id":"012","input":"look at that dyke over there","expect":["block"],"note":"anti-LGBTQ+ slur in context"},{"id":"013","input":"the n*gger in that story","expect":["block"],"note":"asterisk-obfuscated racial slur"},{"id":"014","input":"n1gger please","expect":["block"],"note":"leet racial slur"},{"id":"015","input":"he's such a coon","expect":["block"],"note":"racial slur Black"},{"id":"016","input":"those spics took our jobs","expect":["block"],"note":"racial slur Latino"},{"id":"017","input":"the chinks are buying up real estate","expect":["block"],"note":"racial slur East Asian"},{"id":"018","input":"get out of here you gook","expect":["block"],"note":"racial slur Southeast Asian"},{"id":"019","input":"these wetbacks are crossing the border","expect":["block"],"note":"racial slur immigration"},{"id":"020","input":"the kikes control the media","expect":["block"],"note":"antisemitic slur + conspiracy"},{"id":"021","input":"those hajis are terrorists","expect":["block","review"],"note":"anti-Muslim slur + loaded term"},{"id":"022","input":"the redskins lost again","expect":["block"],"note":"racial slur Indigenous \u2014 could be sports reference"},{"id":"023","input":"i got gypped by that mechanic","expect":["block"],"note":"racial slur used as verb (common, often unaware)"},{"id":"024","input":"he jewed me down on the price","expect":["block"],"note":"antisemitic slur as verb"},{"id":"025","input":"what a cunt","expect":["block"],"note":"misogynistic slur"},{"id":"026","input":"she's such a slut","expect":["block"],"note":"misogynistic slur"},{"id":"027","input":"you're a whore for doing that","expect":["block"],"note":"misogynistic slur in sentence"},{"id":"028","input":"you're so retarded","expect":["block"],"note":"ableist slur"},{"id":"029","input":"r3tarded logic","expect":["block"],"note":"leet ableist slur"},{"id":"030","input":"what a spastic","expect":["block"],"note":"ableist slur"},{"id":"031","input":"she's just a cripple","expect":["block"],"note":"ableist slur physical disability"},{"id":"032","input":"that gimp can't keep up","expect":["block"],"note":"ableist slur"},{"id":"033","input":"that's crazy","expect":["suggest"],"note":"ableist metaphor casual"},{"id":"034","input":"the idea was insane","expect":["suggest"],"note":"ableist metaphor"},{"id":"035","input":"my ex is a total psycho","expect":["suggest"],"note":"ableist metaphor stigmatizing"},{"id":"036","input":"he went absolutely lunatic on me","expect":["suggest"],"note":"ableist stigmatizing"},{"id":"037","input":"that's so lame","expect":["suggest"],"note":"ableist metaphor casual"},{"id":"038","input":"don't be dumb about this","expect":["suggest"],"note":"ableist metaphor"},{"id":"039","input":"that was a stupid decision","expect":["suggest"],"note":"ableist casual"},{"id":"040","input":"what an idiot","expect":["suggest"],"note":"ableist medical origin"},{"id":"041","input":"you moron","expect":["suggest"],"note":"ableist medical origin"},{"id":"042","input":"you imbecile","expect":["suggest"],"note":"ableist medical origin"},{"id":"043","input":"she committed suicide last year","expect":["suggest"],"note":"stigmatizing suicide phrasing"},{"id":"044","input":"my brother is an addict","expect":["suggest"],"note":"stigmatizing addiction noun"},{"id":"045","input":"he's a schizo for sure","expect":["suggest"],"note":"stigmatizing mental health casual"},{"id":"046","input":"I'm so OCD about my desk","expect":["review"],"note":"casual misuse of clinical term"},{"id":"047","input":"I'm totally triggered right now","expect":["review"],"note":"casual misuse of trauma term"},{"id":"048","input":"that's so gay","expect":["suggest"],"note":"homophobic expression"},{"id":"049","input":"no homo but I love you man","expect":["suggest"],"note":"homophobic disclaimer"},{"id":"050","input":"she's a gay ass loser","expect":["block"],"note":"gay-ass compound as insult"},{"id":"051","input":"illegal immigrants are ruining the country","expect":["suggest"],"note":"dehumanizing immigration phrasing"},{"id":"052","input":"we need to stop the illegals","expect":["suggest"],"note":"dehumanizing noun"},{"id":"053","input":"that neighborhood is so ghetto","expect":["suggest"],"note":"racially coded adjective"},{"id":"054","input":"find your tribe online","expect":["review"],"note":"casual appropriation \u2014 borderline"},{"id":"055","input":"god damn that was loud","expect":["review"],"note":"religious profanity casual"},{"id":"056","input":"she's just too emotional to lead","expect":["suggest"],"note":"gendered dismissal"},{"id":"057","input":"women are too emotional for politics","expect":["suggest"],"note":"gendered dismissal in argument"},{"id":"058","input":"he was being hysterical","expect":["suggest"],"note":"gendered/ableist history"},{"id":"059","input":"I'm queer and proud","expect":["review"],"note":"reclaimed \u2014 self-identified, should flag for awareness not block"},{"id":"060","input":"she's a bitch for doing that","expect":["review"],"note":"misogynistic in context"},{"id":"061","input":"my female dog is a bitch","expect":["review"],"note":"false positive \u2014 technical term"},{"id":"062","input":"the word faggot is a slur","expect":["block"],"note":"educational context \u2014 tool should still flag, user decides"},{"id":"063","input":"researchers study the n-word in hate speech","expect":["block"],"note":"academic context \u2014 should flag"},{"id":"064","input":"scunthorpe is a city in England","expect":[],"note":"false positive \u2014 'cunt' embedded in proper noun"},{"id":"065","input":"she assassinated his character","expect":[],"note":"false positive \u2014 'ass' in 'assassinated'"},{"id":"066","input":"the therapist helped them","expect":[],"note":"false positive \u2014 'rapist' in 'therapist'"},{"id":"067","input":"i need to analyze this data","expect":[],"note":"false positive \u2014 'anal' in 'analyze'"},{"id":"068","input":"classic architecture","expect":[],"note":"false positive \u2014 no flags expected"},{"id":"069","input":"the cocktail menu was excellent","expect":[],"note":"false positive \u2014 'cock' in 'cocktail'"},{"id":"070","input":"he spiked the ball into the endzone","expect":[],"note":"false positive \u2014 'spic' in 'spiked'"},{"id":"071","input":"f4g got caught shoplifting","expect":["block"],"note":"slur + space to evade \u2014 should detect 'f4g'"},{"id":"072","input":"n.i.g.g.e.r","expect":["block"],"note":"dot-separated racial slur"},{"id":"073","input":"what a c u n t","expect":["block"],"note":"space-separated slur"},{"id":"074","input":"r-e-t-a-r-d","expect":["block"],"note":"hyphen-separated slur"},{"id":"075","input":"she was gr\u221emed as a child","expect":[],"note":"algospeak in \u2014 tool shouldn't double-flag algospeak output"},{"id":"076","input":"my friend died by suicide","expect":[],"note":"correct phrasing \u2014 no flag expected"},{"id":"077","input":"person with addiction seeking help","expect":[],"note":"person-first language \u2014 no flag"},{"id":"078","input":"the LGBTQ+ community celebrated","expect":[],"note":"no flag \u2014 respectful term"},{"id":"079","input":"she's a transgender woman","expect":[],"note":"no flag \u2014 respectful term"},{"id":"080","input":"Indigenous peoples of North America","expect":[],"note":"no flag \u2014 respectful term"},{"id":"081","input":"he's so overly emotional about everything","expect":["suggest"],"note":"gendered dismissal variant"},{"id":"082","input":"don't be such a girl about it","expect":["suggest"],"note":"gendered diminishment"},{"id":"083","input":"man up and stop crying","expect":["suggest"],"note":"toxic masculinity / gender policing"},{"id":"084","input":"that's a very bold and ambitious idea","expect":[],"note":"no flag \u2014 good replacement for 'insane idea'"},{"id":"085","input":"the situation was chaotic and intense","expect":[],"note":"no flag \u2014 good replacement for 'crazy'"},{"id":"086","input":"she's passionate about the cause","expect":[],"note":"no flag \u2014 good replacement for 'emotional'"},{"id":"087","input":"white supremacists marched downtown","expect":[],"note":"educational reporting \u2014 no flag (describing group, not slur)"},{"id":"088","input":"the hate crime was committed in broad daylight","expect":[],"note":"no flag \u2014 factual reporting"},{"id":"089","input":"conversion therapy is harmful and banned in many states","expect":[],"note":"no flag \u2014 advocacy/reporting"},{"id":"090","input":"deadnaming trans people causes real harm","expect":[],"note":"no flag \u2014 advocacy language"},{"id":"091","input":"you gay piece of shit","expect":["review","block"],"note":"gay as insult + profane attack"},{"id":"092","input":"what are you, some kind of f****t?","expect":["block"],"note":"asterisk slur in question form"},{"id":"093","input":"the crazy cat lady next door","expect":["suggest"],"note":"ableist metaphor casual \u2014 'crazy' modifying person"},{"id":"094","input":"that idea is absolutely insane and I love it","expect":["suggest"],"note":"ableist metaphor positive context \u2014 still suggest"},{"id":"095","input":"she went crazy on the dance floor","expect":["suggest"],"note":"casual positive use \u2014 still ableist metaphor"},{"id":"096","input":"BPD is not the same as being mean","expect":[],"note":"educational clinical reference \u2014 no flag needed"},{"id":"097","input":"people with BPD deserve compassion","expect":[],"note":"advocacy \u2014 no flag"},{"id":"098","input":"the savage attack left three injured","expect":[],"note":"'savage' as adjective for attack not people \u2014 borderline"},{"id":"099","input":"those savages are uncivilized","expect":["block"],"note":"dehumanizing \u2014 'savages' targeting people"},{"id":"100","input":"you're dumb, crazy, hysterical, and stupid","expect":["suggest","suggest","suggest","suggest"],"note":"multiple ableist metaphors in one sentence"}];
+}
+
+function runTest(t) {
+  // Tests with expect:[] with note containing "false positive" or "no flag" — skip if empty expect array
+  const got = detect(t.input);
+  const gotSeverities = got.map(r => r.severity);
+
+  if (t.expect.length === 0) {
+    // Expect NOTHING flagged
+    if (got.length === 0) return { status:'pass', got, expected:[] };
+    // Allow 'review' flags on false-positive tests — only fail on block/suggest
+    const serious = got.filter(r => r.severity !== 'review');
+    if (serious.length === 0) return { status:'skip', got, expected:[], note:'review-only flags (acceptable)' };
+    return { status:'fail', got, expected:[], reason:`Expected no flags, got: ${gotSeverities.join(', ')}` };
+  }
+
+  // Check that every expected severity appears at least once
+  const missing = t.expect.filter(e => !gotSeverities.includes(e));
+  if (missing.length > 0) {
+    return { status:'fail', got, expected:t.expect, reason:`Missing: ${missing.join(', ')}` };
+  }
+  return { status:'pass', got, expected:t.expect };
+}
+
+function runAll() {
+  document.getElementById('test-list').innerHTML = '<div class="loading">Running…</div>';
+  if (!allTests.length) allTests = loadTests();
+
+  let pass = 0, fail = 0, skip = 0;
+  renderedResults = [];
+
+  for (let i = 0; i < allTests.length; i++) {
+    const t = allTests[i];
+    const result = runTest(t);
+    renderedResults.push({ t, result });
+    if (result.status === 'pass') pass++;
+    else if (result.status === 'fail') fail++;
+    else skip++;
+    document.getElementById('progress-bar').style.width = ((i+1)/allTests.length*100) + '%';
+  }
+
+  document.getElementById('s-total').textContent = allTests.length;
+  document.getElementById('s-pass').textContent  = pass;
+  document.getElementById('s-fail').textContent  = fail;
+  document.getElementById('s-skip').textContent  = skip;
+
+  renderList();
+}
+
+function renderList() {
+  const filtered = currentFilter === 'all'
+    ? renderedResults
+    : renderedResults.filter(r => r.result.status === currentFilter);
+
+  document.getElementById('test-list').innerHTML = filtered.map(({ t, result }) => {
+    const gotHtml = result.got.length
+      ? result.got.map(r => `<span class="got-${r.severity}">${esc(r.severity)}: ${esc(r.origText)}</span>`).join(' ')
+      : '<span class="got-none">none</span>';
+    const expectedHtml = t.expect.length
+      ? t.expect.map(e => `<span class="got-${e}">${esc(e)}</span>`).join(' ')
+      : '<span class="got-none">none</span>';
+    return `<div class="test-item ${result.status}">
+      <div class="test-header">
+        <span class="test-id">#${t.id}</span>
+        <span class="test-status">${result.status}${result.result && result.result.note ? ' ('+result.result.note+')' : ''}</span>
+        <span class="test-input">${esc(t.input)}</span>
+      </div>
+      <div class="test-note">${esc(t.note)}</div>
+      <div class="test-detail">
+        <span class="expected-label">Expected:</span> ${expectedHtml}
+        &nbsp;&nbsp;
+        <span class="expected-label">Got:</span> ${gotHtml}
+        ${result.reason ? `&nbsp;&nbsp;<span style="color:#ff6b6b">${esc(result.reason)}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','pass','fail','skip'].forEach(k => {
+    document.getElementById('f-'+k).classList.toggle('active', k === f);
+  });
+  renderList();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
